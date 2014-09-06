@@ -19,6 +19,15 @@ db = SQLAlchemy(app)
 db.create_all()
 
 
+class Log(db.Model):
+    __tablename__ = 'log'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    happy = db.Column(db.Boolean)
+    measure = db.Column(db.Float)
+
+
 # One of the simplest configurations. Exposes all resources matching /api/* to
 # CORS and allows the Content-Type header, which is necessary to POST JSON
 # cross origin.
