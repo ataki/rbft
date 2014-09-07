@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Face tracker</title>
+    <meta charset="utf-8">
+    <link href="../styles/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Lato:300italic,700italic,300,700);
+
+      body {
+        font-family: 'Lato';
+        background-color: #f0f0f0;
+        margin: 0px auto;
+        max-width: 1150px;
+      }
+
+      #overlay {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        -o-transform : scaleX(-1);
+        -webkit-transform : scaleX(-1);
+        transform : scaleX(-1);
+        -ms-filter : fliph; /*IE*/
+        filter : fliph; /*IE*/
+
+        width : 600px;
+        height : 450px;
+      }
+
+      #videoel {
+        -o-transform : scaleX(-1);
+        -webkit-transform : scaleX(-1);
+        transform : scaleX(-1);
+        -ms-filter : fliph; /*IE*/
+        filter : fliph; /*IE*/
+
+        width : 600px;
+        height : 450px;
+      }
+
+      #container {
+        position : relative;
+        width : 370px;
+        /*margin : 0px auto;*/
+      }
+
+      #content {
+        margin-top : 50px;
+        margin-left : auto;
+        margin-right : auto;
+        max-width: 600px;
+      }
+
+      #sketch, #filter {
+        display: none;
+      }
+
+      h2 {
+        font-weight : 400;
+      }
+
+      .btn {
+        font-family: 'Lato';
+        font-size: 16px;
+      }
+
+      #controls {
+        text-align : center;
+      }
+
+      #emotion_container {
+        width: 600px;
+      }
+
+      #emotion_icons {
+        height: 50px;
+        padding-left: 40px;
+      }
+
+      .emotion_icon {
+        width : 40px;
+        height : 40px;
+        margin-top: 5px;
+        /*margin-left : 13px;*/
+        margin-left : 35px;
+      }
+
+      #emotion_chart, #emotion_icons {
+        margin: 0 auto;
+        width : 400px;
+      }
+
+      #icon1, #icon2, #icon3, #icon4, #icon5, #icon6 {
+        visibility : hidden;
+      }
+
+      /* d3 */
+      .bar {
+        fill : steelblue;
+        fill-opacity : .9;
+      }
+
+    </style>
+    <script type="text/javascript" async="" src="http://www.google-analytics.com/ga.js"></script><script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-32642923-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script><style type="text/css"></style>
+  </head>
+  <body>
+    <script src="../js/utils.js"></script>
+    <script src="../js/clmtracker.js"></script>
+    <script src="../js/model_pca_20_svm_emotionDetection.js"></script>
+    <script src="../js/Stats.js"></script>
+    <script src="../js/d3.min.js"></script>
+    <script src="../js/emotion_classifier.js"></script>
+    <script src="../js/emotionmodel.js"></script>
+    <div id="content">
+      <h2>Emotion detection example</h2>
+      <p>This a test of emotion detection based on parameter output from <em>clmtrackr</em>.</p>
+      <div id="container">
+        <video id="videoel" width="400" height="300" preload="auto" loop="">
+        </video>
+        <canvas id="overlay" width="400" height="300"></canvas>
+      <div style="cursor: pointer; width: 80px; opacity: 0.9; z-index: 10001; position: absolute; top: 0px;"><div style="text-align: left; line-height: 1.2em; padding: 0px 0px 3px 3px; background-color: rgb(8, 8, 24);"><div style="font-family: Helvetica, Arial, sans-serif; font-size: 9px; color: rgb(0, 255, 255); font-weight: bold;">FPS</div><div style="position: relative; width: 74px; height: 30px; background-color: rgb(0, 255, 255);"><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span><span style="width: 1px; height: 30px; float: left; background-color: rgb(16, 16, 48);"></span></div></div><div style="text-align: left; line-height: 1.2em; padding: 0px 0px 3px 3px; display: none; background-color: rgb(8, 24, 8);"><div style="font-family: Helvetica, Arial, sans-serif; font-size: 9px; color: rgb(0, 255, 0); font-weight: bold;">MS</div><div style="position: relative; width: 74px; height: 30px; background-color: rgb(0, 255, 0);"><span style="width: 1px; height: 16.9574047182687px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 22.6791636482812px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 27.8318195021711px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 12.6656167767942px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 22.7107163798064px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 3.8007160811685px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 0.201206873171031px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 13.1699061230756px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 22.923147934489px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 15.1692175702192px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 17.971504975576px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 14.5981914759614px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 25.7907045911998px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 2.14555635116994px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 2.61325948638842px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 16.3950772024691px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 3.01673256559297px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 18.0473079462536px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 11.3881673547439px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 14.0615254989825px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 22.1437473571859px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 20.3070820891298px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 3.32193339709193px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 10.0387347349897px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 10.7740112557076px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 14.74477595184px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 0.492878293152899px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 4.54537366284058px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 13.39855580125px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 28.127427957952px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 13.6840434721671px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 4.28518956061453px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 5.91838356340304px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 20.2379216230474px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 25.7257845508866px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 15.9287353791296px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 5.81615144619718px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 18.1529493816197px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 24.417911991477px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 27.3547617229633px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 27.116686895024px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 28.2838234235533px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 19.8774224566296px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 10.5659029330127px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 21.5426407498308px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 16.4607339771464px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 12.8137388709001px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 29.708057648968px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 6.88385750167072px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 6.87610699329525px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 8.31243979744613px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 28.4227701765485px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 7.50765464035794px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 29.2603129846975px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 14.7127914545126px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 20.1170027023181px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 9.89276088774204px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 25.4773268429562px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 9.36858403729275px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 11.0082133300602px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 28.9279156154953px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 24.5406376873143px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 22.102802793961px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 28.7690874980763px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 13.4425797429867px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 27.8943447349593px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 16.0561860515736px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 0.176291784737259px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 14.8928587068804px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 29.3412145692855px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 18.9618149539456px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 21.4296925580129px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 22.7172956289724px; float: left; background-color: rgb(16, 48, 16);"></span><span style="width: 1px; height: 3.35003920365125px; float: left; background-color: rgb(16, 48, 16);"></span></div></div></div></div>
+      <canvas id="sketch" width="400" height="300"></canvas>
+      <div id="emotion_container">
+        <div id="emotion_icons">
+          <img class="emotion_icon" id="icon1" src="../media/icon_angry.png">
+          <img class="emotion_icon" id="icon2" src="../media/icon_sad.png">
+          <img class="emotion_icon" id="icon3" src="../media/icon_surprised.png">
+          <img class="emotion_icon" id="icon4" src="../media/icon_happy.png">
+        </div>
+        <div id="emotion_chart"><svg width="400" height="100"><rect x="40" y="70" height="0" width="30" fill="#2d578b"></rect><rect x="125" y="70" height="0" width="30" fill="#2d578b"></rect><rect x="210" y="70" height="0" width="30" fill="#2d578b"></rect><rect x="295" y="70" height="0" width="30" fill="#2d578b"></rect><text x="70" y="70" dx="-15" dy="1.2em" text-anchor="middle" fill="white" class="labels">0</text><text x="155" y="70" dx="-15" dy="1.2em" text-anchor="middle" fill="white" class="labels">0</text><text x="240" y="70" dx="-15" dy="1.2em" text-anchor="middle" fill="white" class="labels">0</text><text x="325" y="70" dx="-15" dy="1.2em" text-anchor="middle" fill="white" class="labels">0</text><text x="70" y="70" dx="-15" text-anchor="middle" style="font-size: 12" transform="translate(0, 18)" class="yAxis">angry</text><text x="155" y="70" dx="-15" text-anchor="middle" style="font-size: 12" transform="translate(0, 18)" class="yAxis">sad</text><text x="240" y="70" dx="-15" text-anchor="middle" style="font-size: 12" transform="translate(0, 18)" class="yAxis">surprised</text><text x="325" y="70" dx="-15" text-anchor="middle" style="font-size: 12" transform="translate(0, 18)" class="yAxis">happy</text></svg></div>
+      </div>
+      <div id="controls">
+        <input class="btn" type="button" value="wait, loading video" disabled="disabled" onclick="startVideo()" id="startbutton">
+      </div>
+      <a href="https://github.com/auduno/clmtrackr"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_left_green_007200.png" alt="Fork me on GitHub"></a>
+      <script>
+        var vid = document.getElementById('videoel');
+        var overlay = document.getElementById('overlay');
+        var overlayCC = overlay.getContext('2d');
+
+        /********** check and set up video/webcam **********/
+
+        function enablestart() {
+          var startbutton = document.getElementById('startbutton');
+          startbutton.value = "start";
+          startbutton.disabled = null;
+        }
+
+        /*var insertAltVideo = function(video) {
+          if (supports_video()) {
+            if (supports_ogg_theora_video()) {
+              video.src = "../media/cap12_edit.ogv";
+            } else if (supports_h264_baseline_video()) {
+              video.src = "../media/cap12_edit.mp4";
+            } else {
+              return false;
+            }
+            //video.play();
+            return true;
+          } else return false;
+        }*/
+        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+        window.URL = window.URL || window.webkitURL || window.msURL || window.mozURL;
+
+        // check for camerasupport
+        if (navigator.getUserMedia) {
+          // set up stream
+
+          var videoSelector = {video : true};
+          if (window.navigator.appVersion.match(/Chrome\/(.*?) /)) {
+            var chromeVersion = parseInt(window.navigator.appVersion.match(/Chrome\/(\d+)\./)[1], 10);
+            if (chromeVersion < 20) {
+              videoSelector = "video";
+            }
+          };
+
+          navigator.getUserMedia(videoSelector, function( stream ) {
+            if (vid.mozCaptureStream) {
+              vid.mozSrcObject = stream;
+            } else {
+              vid.src = (window.URL && window.URL.createObjectURL(stream)) || stream;
+            }
+            vid.play();
+          }, function() {
+            //insertAltVideo(vid);
+            alert("There was some problem trying to fetch video from your webcam. If you have a webcam, please make sure to accept when the browser asks for access to your webcam.");
+          });
+        } else {
+          //insertAltVideo(vid);
+          alert("This demo depends on getUserMedia, which your browser does not seem to support. :(");
+        }
+
+        vid.addEventListener('canplay', enablestart, false);
+
+        /*********** setup of emotion detection *************/
+
+        var ctrack = new clm.tracker({useWebGL : true});
+        ctrack.init(pModel);
+
+        function startVideo() {
+          // start video
+          vid.play();
+          // start tracking
+          ctrack.start(vid);
+          // start loop to draw face
+          drawLoop();
+        }
+
+        function drawLoop() {
+          requestAnimFrame(drawLoop);
+          overlayCC.clearRect(0, 0, 400, 300);
+          //psrElement.innerHTML = "score :" + ctrack.getScore().toFixed(4);
+          if (ctrack.getCurrentPosition()) {
+            ctrack.draw(overlay);
+          }
+          var cp = ctrack.getCurrentParameters();
+
+          var er = ec.meanPredict(cp);
+          if (er && er[3] && er[3].value > 0.7) {
+            console.log('happy!');
+          }
+          if (er) {
+            updateData(er);
+            for (var i = 0;i < er.length;i++) {
+              if (er[i].value > 0.4) {
+                document.getElementById('icon'+(i+1)).style.visibility = 'visible';
+              } else {
+                document.getElementById('icon'+(i+1)).style.visibility = 'hidden';
+              }
+            }
+          }
+        }
+
+        var ec = new emotionClassifier();
+        ec.init(emotionModel);
+        var emotionData = ec.getBlank();
+
+        /************ d3 code for barchart *****************/
+
+        var margin = {top : 20, right : 20, bottom : 10, left : 40},
+          width = 400 - margin.left - margin.right,
+          height = 100 - margin.top - margin.bottom;
+
+        var barWidth = 30;
+
+        var formatPercent = d3.format(".0%");
+
+        var x = d3.scale.linear()
+          .domain([0, ec.getEmotions().length]).range([margin.left, width+margin.left]);
+
+        var y = d3.scale.linear()
+          .domain([0,1]).range([0, height]);
+
+        var svg = d3.select("#emotion_chart").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+
+        svg.selectAll("rect").
+          data(emotionData).
+          enter().
+          append("svg:rect").
+          attr("x", function(datum, index) { return x(index); }).
+          attr("y", function(datum) { return height - y(datum.value); }).
+          attr("height", function(datum) { return y(datum.value); }).
+          attr("width", barWidth).
+          attr("fill", "#2d578b");
+
+        svg.selectAll("text.labels").
+          data(emotionData).
+          enter().
+          append("svg:text").
+          attr("x", function(datum, index) { return x(index) + barWidth; }).
+          attr("y", function(datum) { return height - y(datum.value); }).
+          attr("dx", -barWidth/2).
+          attr("dy", "1.2em").
+          attr("text-anchor", "middle").
+          text(function(datum) { return datum.value;}).
+          attr("fill", "white").
+          attr("class", "labels");
+
+        svg.selectAll("text.yAxis").
+          data(emotionData).
+          enter().append("svg:text").
+          attr("x", function(datum, index) { return x(index) + barWidth; }).
+          attr("y", height).
+          attr("dx", -barWidth/2).
+          attr("text-anchor", "middle").
+          attr("style", "font-size: 12").
+          text(function(datum) { return datum.emotion;}).
+          attr("transform", "translate(0, 18)").
+          attr("class", "yAxis");
+
+        function updateData(data) {
+          // update
+          var rects = svg.selectAll("rect")
+            .data(data)
+            .attr("y", function(datum) { return height - y(datum.value); })
+            .attr("height", function(datum) { return y(datum.value); });
+          var texts = svg.selectAll("text.labels")
+            .data(data)
+            .attr("y", function(datum) { return height - y(datum.value); })
+            .text(function(datum) { return datum.value.toFixed(1);});
+
+          // enter
+          rects.enter().append("svg:rect");
+          texts.enter().append("svg:text");
+
+          // exit
+          rects.exit().remove();
+          texts.exit().remove();
+        }
+
+        /******** stats ********/
+
+        stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.top = '0px';
+        document.getElementById('container').appendChild( stats.domElement );
+
+        // update stats on every iteration
+        document.addEventListener('clmtrackrIteration', function(event) {
+          stats.update();
+        }, false);
+
+      </script>
+    </div><canvas width="11px" height="781px" id="renderCanvas" style="display:none;"></canvas>
+
+
+<div class="pnt-on-image-wrapper" style="display: none;"><div class="pnt-on-image"><div class="pnticn pnticn-logo pnticnlarge"></div><div class="pnt-onimg-text">Point</div></div></div></body></html>
