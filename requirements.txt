@@ -1,6 +1,7 @@
 Flask==0.10.1
 Flask-Cors==1.8.0
 Flask-SQLAlchemy==2.0
+Flask-Sockets==0.1
 Jinja2==2.7.3
 MarkupSafe==0.23
 MySQL-python==1.2.5
@@ -8,10 +9,14 @@ SQLAlchemy==0.9.7
 Werkzeug==0.9.6
 argparse==1.2.1
 dateutils==0.6.6
+gevent==1.0.1
+gevent-websocket==0.9.3
+greenlet==0.4.3
 gunicorn==19.1.1
 itsdangerous==0.24
 python-dateutil==2.2
 pytz==2014.7
+redis==2.10.3
 simplejson==3.6.3
 six==1.7.3
 wsgiref==0.1.2
